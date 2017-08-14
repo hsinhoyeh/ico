@@ -30,7 +30,8 @@ from ico.utils import get_constructor_arguments
 @click.option('--issuer-address', nargs=1, help='The address of the issuer contract - leave out for the first run to deploy a new issuer contract', required=False, default=None)
 @click.option('--master-address', nargs=1, help='The team multisig wallet address that does StandardToken.approve() for the issuer contract', required=False, default=None)
 @click.option('--allow-zero/--no-allow-zero', default=False, help='Stops the script if a zero amount row is encountered')
-def main(chain, address, token, csv_file, limit, start_from, issuer_address, address_column, amount_column, allow_zero, master_address):
+@click.option('--approve-amount', required=False, default=0, help='approve amount if this val is not zero')
+def main(chain, address, token, csv_file, limit, start_from, issuer_address, address_column, amount_column, allow_zero, master_address, approve_amount):
     """Distribute tokens to centrally issued crowdsale participant.
 
     Reads in distribution data as CSV. Then uses Issuer contract to distribute tokens.
@@ -93,23 +94,23 @@ def main(chain, address, token, csv_file, limit, start_from, issuer_address, add
             issuer, txhash = c.provider.deploy_contract("Issuer", deploy_transaction=transaction, deploy_args=args)
             check_succesful_tx(web3, txhash)
 
-            const_args = get_constructor_arguments(issuer, args)
-            chain_name = chain
-            fname = "Issuer.sol"
-            browser_driver = "chrome"
-            verify_contract(
-                project=project,
-                libraries={},  # TODO: Figure out how to pass around
-                chain_name=chain_name,
-                address=issuer.address,
-                contract_name="Issuer",
-                contract_filename=fname,
-                constructor_args=const_args,
-                # libraries=runtime_data["contracts"][name]["libraries"],
-                browser_driver=browser_driver)
-            link = get_etherscan_link(chain_name, issuer.address)
+            # const_args = get_constructor_arguments(issuer, args)
+            # chain_name = chain
+            # fname = "Issuer.sol"
+            # browser_driver = "chrome"
+            # verify_contract(
+            #     project=project,
+            #     libraries={},  # TODO: Figure out how to pass around
+            #     chain_name=chain_name,
+            #     address=issuer.address,
+            #     contract_name="Issuer",
+            #     contract_filename=fname,
+            #     constructor_args=const_args,
+            #     # libraries=runtime_data["contracts"][name]["libraries"],
+            #     browser_driver=browser_driver)
+            # link = get_etherscan_link(chain_name, issuer.address)
 
-            print("Issuer verified contract is", link)
+            # print("Issuer verified contract is", link)
         else:
             print("Reusing existing issuer contract")
             issuer = Issuer(address=issuer_address)
@@ -124,7 +125,14 @@ def main(chain, address, token, csv_file, limit, start_from, issuer_address, add
         print("Issuer allowance", allowance)
 
         if allowance == 0 or not master_address:
-            sys.exit("Please use Token.approve() to give some allowance for the issuer contract by master address")
+            if approve_amount != 0:
+                print("approved token", token.transact({"from": address}).approve(issuer.address, approve_amount))
+
+            else:
+                sys.exit("Please use Token.approve() to give some allowance for the issuer contract by master address")
+
+        allowance = token.call().allowance(master_address, issuer.address)
+        print("Issuer allowance", allowance)
 
         print("Reading data", csv_file)
         with open(csv_file, "rt") as inp:
@@ -182,7 +190,6 @@ def main(chain, address, token, csv_file, limit, start_from, issuer_address, add
                 continue
 
             txid = issuer.transact(transaction).issue(addr, tokens)
-
             tx_to_confirm.append(txid)
 
             # Confirm N transactions when batch max size is reached

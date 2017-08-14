@@ -1,0 +1,14 @@
+{
+  "name": "ico",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/TokenMarketNet/ico.git",
+  "author": "hsinhoyeh <yhh92u@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "solc": "^0.4.15",
+    "underscore-node": "^0.1.2",
+    "web3": "^0.18.4"
+  }
+}
