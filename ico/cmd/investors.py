@@ -24,7 +24,7 @@ def main(chain, address, csv_file):
         # Sanity check
         print("Block number is", web3.eth.blockNumber)
 
-        Crowdsale = c.provider.get_contract_factory('MintedTokenCappedCrowdsale')
+        Crowdsale = getattr(c.contract_factories, 'MintedTokenCappedCrowdsale')
         crowdsale = Crowdsale(address=address)
 
         print("Total amount raised is", from_wei(crowdsale.call().weiRaised(), "ether"), "ether")

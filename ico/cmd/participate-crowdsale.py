@@ -66,6 +66,8 @@ with project.get_chain(chain_name) as chain:
     print("crowdsale tokensSold is ", crowdsale.call().tokensSold())
     print("crowdsale weiRaised is ", crowdsale.call().weiRaised())
     print("crowdsale investorCount is ", crowdsale.call().investorCount())
+    print("crowdsale maximumSellableTokens is ", crowdsale.call().maximumSellableTokens())
+    print("crowdsale minimumFundingGoal", crowdsale.call().minimumFundingGoal())
     print("crowdsale starts at ", crowdsale.call().startsAt())
     print("crowdsale ends at ", crowdsale.call().endsAt())
     print("crowdsale state ", crowdsale.call().getState())
